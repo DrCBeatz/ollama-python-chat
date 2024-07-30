@@ -1,0 +1,70 @@
+<!--- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat with LLM</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .chat-container { width: 50%; margin: auto; }
+        .message-box { width: 100%; height: 50px; }
+        .chat-log { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Chat with LLM</h1>
+        <div class="chat-log" id="chat-log"></div>
+        <form id="chat-form">
+            <input type="text" name="message" class="message-box" placeholder="Enter your message...">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('chat-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const messageBox = document.querySelector('.message-box');
+            const chatLog = document.getElementById('chat-log');
+            const message = messageBox.value;
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'message': message
+                })
+            }).then(response => {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                chatLog.innerHTML += '<p><strong>You:</strong> ' + message + '</p>';
+                messageBox.value = '';
+
+                function readChunk() {
+                    reader.read().then(function processText({ done, value }) {
+                        if (done) {
+                            chatLog.innerHTML += '<hr>';
+                            return;
+                        }
+                        const chunk = decoder.decode(value, { stream: true });
+                        console.log(`Received chunk: ${chunk}`);
+                        try {
+                            const json = JSON.parse(chunk);
+                            if (json.message && json.message.content) {
+                                chatLog.innerHTML += json.message.content.replace(/\n/g, '<br>');
+                                chatLog.scrollTop = chatLog.scrollHeight;
+                            }
+                        } catch (e) {
+                            console.error(`Error parsing chunk: ${e}`);
+                        }
+                        return reader.read().then(processText);
+                    });
+                }
+                chatLog.innerHTML += '<strong>LLM:</strong> ';
+                readChunk();
+            });
+        });
+    </script>
+</body>
+</html>
