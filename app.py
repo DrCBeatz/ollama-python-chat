@@ -4,12 +4,15 @@ from flask import Flask, render_template, request, Response
 import os
 import requests
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 OLLAMA_API_URL = os.getenv('OLLAMA_API_URL', 'http://ollama:11434')
-MODEL = 'dolphin-mistral:7b'
+MODEL = os.getenv('MODEL_NAME', 'dolphin-mistral:7b')
 
 def ask_question(query):
     response = requests.post(
