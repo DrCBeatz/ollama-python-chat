@@ -12,7 +12,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 OLLAMA_API_URL = os.getenv('OLLAMA_API_URL', 'http://ollama:11434')
-MODEL = os.getenv('MODEL_NAME', 'dolphin-mistral:7b')
+MODEL = os.getenv('MODEL_NAME', 'llama3.1:8b')
 
 def ask_question(query):
     response = requests.post(
