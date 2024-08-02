@@ -53,6 +53,11 @@
         button:hover {
             background-color: #555;
         }
+        .spinner {
+            display: none; /* Hide the spinner by default */
+            margin: 20px auto;
+            filter: invert(1); /* Invert the colors of the SVG from black to white */
+        }
     </style>
 </head>
 <body>
@@ -63,6 +68,7 @@
             <input type="text" name="message" class="message-box" placeholder="Enter your message...">
             <button type="submit">Submit Message</button>
         </form>
+        <img src="{{ url_for('static', filename='images/bars-rotate-fade.svg') }}" class="spinner" id="spinner" alt="Loading...">
     </div>
 
     <script>
@@ -70,7 +76,11 @@
             event.preventDefault();
             const messageBox = document.querySelector('.message-box');
             const chatLog = document.getElementById('chat-log');
+            const spinner = document.getElementById('spinner');
             const message = messageBox.value;
+
+            // Show the loading spinner while waiting for a response
+            spinner.style.display = 'block';
 
             fetch('/chat', {
                 method: 'POST',
@@ -87,6 +97,8 @@
                 messageBox.value = '';
 
                 function readChunk() {
+                    // Hide the loading spinner when the response starts
+                    spinner.style.display = 'none';
                     reader.read().then(function processText({ done, value }) {
                         if (done) {
                             chatLog.innerHTML += '<hr>';
